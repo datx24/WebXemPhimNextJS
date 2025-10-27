@@ -1,4 +1,5 @@
 "use client";
+
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
@@ -8,14 +9,21 @@ export default function Header() {
   const [keyword, setKeyword] = useState("");
   const router = useRouter();
 
+  // ✅ Xử lý tìm kiếm
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (!keyword.trim()) return;
     router.push(`/search?keyword=${encodeURIComponent(keyword)}`);
   };
 
+  // ✅ Xử lý click danh mục (TV Show, Phim Lẻ, Phim Bộ, Phim Đang Chiếu)
   const handleNavigateCategory = (category: string) => {
     router.push(`/search?category=${category}`);
+  };
+
+  // ✅ Xử lý click dropdown
+  const handleNavigateParam = (param: string, value: string) => {
+    router.push(`/search?${param}=${value}`);
   };
 
   return (
@@ -28,7 +36,7 @@ export default function Header() {
         <Image src="/RoPhim.png" alt="MovieApp" width={133} height={40} />
       </div>
 
-      {/* Menu */}
+      {/* Menu chính */}
       <nav className="flex items-center flex-wrap gap-4 md:gap-6">
         <button
           onClick={() => handleNavigateCategory("tv-shows")}
@@ -56,63 +64,59 @@ export default function Header() {
         </button>
 
         {/* Dropdown Thể loại */}
-<div className="relative group z-50">
-  <button className="hover:text-red-500 transition">Thể loại ▾</button>
-  <div className="absolute left-0 mt-2 w-52 bg-gray-800 rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-50 max-h-96 overflow-y-auto">
-    {GENRES.map((genre) => (
-      <a
-        key={genre.slug}
-        href={`/search?genre=${genre.slug}`}
-        className="block px-4 py-2 hover:bg-gray-700"
-      >
-        {genre.label}
-      </a>
-    ))}
-  </div>
-</div>
+        <div className="relative group z-50">
+          <button className="hover:text-red-500 transition">Thể loại ▾</button>
+          <div className="absolute left-0 mt-2 w-52 bg-gray-800 rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-50 max-h-96 overflow-y-auto">
+            {GENRES.map((genre) => (
+              <button
+                key={genre.slug}
+                onClick={() => handleNavigateParam("genre", genre.slug)}
+                className="block w-full text-left px-4 py-2 hover:bg-gray-700"
+              >
+                {genre.label}
+              </button>
+            ))}
+          </div>
+        </div>
 
-{/* Dropdown Quốc gia */}
-<div className="relative group z-50">
-  <button className="hover:text-red-500 transition">Quốc gia ▾</button>
-  <div className="absolute left-0 mt-2 w-48 bg-gray-800 rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-50 max-h-96 overflow-y-auto">
-    {COUNTRIES.map((country) => (
-      <a
-        key={country.slug}
-        href={`/search?country=${country.slug}`}
-        className="block px-4 py-2 hover:bg-gray-700"
-      >
-        {country.label}
-      </a>
-    ))}
-  </div>
-</div>
+        {/* Dropdown Quốc gia */}
+        <div className="relative group z-50">
+          <button className="hover:text-red-500 transition">Quốc gia ▾</button>
+          <div className="absolute left-0 mt-2 w-48 bg-gray-800 rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-50 max-h-96 overflow-y-auto">
+            {COUNTRIES.map((country) => (
+              <button
+                key={country.slug}
+                onClick={() => handleNavigateParam("country", country.slug)}
+                className="block w-full text-left px-4 py-2 hover:bg-gray-700"
+              >
+                {country.label}
+              </button>
+            ))}
+          </div>
+        </div>
 
-{/* Dropdown Năm */}
-<div className="relative group z-50">
-  <button className="hover:text-red-500 transition">Năm ▾</button>
-  <div className="absolute left-0 mt-2 w-32 bg-gray-800 rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-50 max-h-96 overflow-y-auto">
-    {YEARS.map((year) => (
-      <a
-        key={year}
-        href={`/search?year=${year}`}
-        className="block px-4 py-2 hover:bg-gray-700"
-      >
-        {year}
-      </a>
-    ))}
-  </div>
-</div>
-
+        {/* Dropdown Năm */}
+        <div className="relative group z-50">
+          <button className="hover:text-red-500 transition">Năm ▾</button>
+          <div className="absolute left-0 mt-2 w-32 bg-gray-800 rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-50 max-h-96 overflow-y-auto">
+            {YEARS.map((year) => (
+              <button
+                key={year}
+                onClick={() => handleNavigateParam("year", String(year))}
+                className="block w-full text-left px-4 py-2 hover:bg-gray-700"
+              >
+                {year}
+              </button>
+            ))}
+          </div>
+        </div>
       </nav>
 
-      {/* Search box */}
+      {/* Ô tìm kiếm */}
       <form
         onSubmit={handleSearch}
         className="flex items-center max-w-lg w-full md:w-auto"
       >
-        <label htmlFor="voice-search" className="sr-only">
-          Search
-        </label>
         <div className="relative w-full">
           <div className="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
             <svg
