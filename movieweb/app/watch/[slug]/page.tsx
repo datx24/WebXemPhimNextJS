@@ -60,7 +60,7 @@ export default function WatchPage() {
               href={`/watch/${slug}?episode=${i}`}
               className={`px-4 py-2 rounded-lg font-medium transition ${
                 i === epIndex
-                  ? "bg-red-600 text-white"
+                  ? "bg-yellow-600 text-white"
                   : "bg-gray-300 dark:bg-gray-700 text-gray-900 dark:text-gray-200 hover:bg-gray-400 dark:hover:bg-gray-600"
               }`}
             >

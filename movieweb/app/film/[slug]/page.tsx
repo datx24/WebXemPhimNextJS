@@ -42,7 +42,7 @@ export default async function MovieDetailPage({ params }: MovieDetailProps) {
             </p>
             <a
               href={`/watch/${movie.slug}?episode=0`}
-              className="inline-block mt-4 px-6 py-2 bg-red-600 hover:bg-red-700 transition text-white font-semibold rounded-lg shadow-lg animate-bounce"
+              className="inline-block mt-4 px-6 py-2 bg-yellow-600 hover:bg-yellow-700 transition text-white font-semibold rounded-lg shadow-lg animate-bounce"
             >
               Xem ngay
             </a>

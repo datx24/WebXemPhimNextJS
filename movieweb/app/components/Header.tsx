@@ -40,32 +40,32 @@ export default function Header() {
       <nav className="flex items-center flex-wrap gap-4 md:gap-6">
         <button
           onClick={() => handleNavigateCategory("tv-shows")}
-          className="hover:text-red-500 transition"
+          className="hover:text-yellow-500 transition"
         >
           TV Show
         </button>
         <button
           onClick={() => handleNavigateCategory("phim-le")}
-          className="hover:text-red-500 transition"
+          className="hover:text-yellow-500 transition"
         >
           Phim Lẻ
         </button>
         <button
           onClick={() => handleNavigateCategory("phim-bo")}
-          className="hover:text-red-500 transition"
+          className="hover:text-yellow-500 transition"
         >
           Phim Bộ
         </button>
         <button
           onClick={() => handleNavigateCategory("phim-dang-chieu")}
-          className="hover:text-red-500 transition"
+          className="hover:text-yellow-500 transition"
         >
           Phim Đang Chiếu
         </button>
 
         {/* Dropdown Thể loại */}
         <div className="relative group z-50">
-          <button className="hover:text-red-500 transition">Thể loại ▾</button>
+          <button className="hover:text-yellow-500 transition">Thể loại ▾</button>
           <div className="absolute left-0 mt-2 w-52 bg-gray-800 rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-50 max-h-96 overflow-y-auto">
             {GENRES.map((genre) => (
               <button
@@ -81,7 +81,7 @@ export default function Header() {
 
         {/* Dropdown Quốc gia */}
         <div className="relative group z-50">
-          <button className="hover:text-red-500 transition">Quốc gia ▾</button>
+          <button className="hover:text-yellow-500 transition">Quốc gia ▾</button>
           <div className="absolute left-0 mt-2 w-48 bg-gray-800 rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-50 max-h-96 overflow-y-auto">
             {COUNTRIES.map((country) => (
               <button
@@ -97,7 +97,7 @@ export default function Header() {
 
         {/* Dropdown Năm */}
         <div className="relative group z-50">
-          <button className="hover:text-red-500 transition">Năm ▾</button>
+          <button className="hover:text-yellow-500 transition">Năm ▾</button>
           <div className="absolute left-0 mt-2 w-32 bg-gray-800 rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-50 max-h-96 overflow-y-auto">
             {YEARS.map((year) => (
               <button
@@ -147,7 +147,7 @@ export default function Header() {
         </div>
         <button
           type="submit"
-          className="inline-flex items-center py-2.5 px-3 ms-2 text-sm font-medium text-white bg-blue-700 rounded-r-full border border-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300"
+          className="inline-flex items-center py-2.5 px-3 ms-2 text-sm font-medium text-white bg-yellow-700 rounded-r-full border border-yellow-700 hover:bg-yellow-800 focus:ring-4 focus:outline-none focus:ring-yellow-300"
         >
           <svg
             className="w-4 h-4 me-2"

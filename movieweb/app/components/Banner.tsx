@@ -81,7 +81,7 @@ export default function Banner() {
 
         <Link
           href={`/film/${film.slug}`}
-          className="inline-flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-full font-semibold text-lg transition-transform duration-300 hover:scale-105"
+          className="inline-flex items-center gap-2 bg-yellow-600 hover:bg-yellow-700 text-white px-6 py-3 rounded-full font-semibold text-lg transition-transform duration-300 hover:scale-105"
         >
           ▶ Xem ngay
         </Link>
