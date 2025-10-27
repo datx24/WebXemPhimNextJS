@@ -7,23 +7,30 @@ import { GENRES, COUNTRIES, YEARS } from "../utils/constants";
 
 export default function Header() {
   const [keyword, setKeyword] = useState("");
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null); // ✅ Trạng thái dropdown đang mở
   const router = useRouter();
 
-  // ✅ Xử lý tìm kiếm
+  // ✅ Tìm kiếm
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (!keyword.trim()) return;
     router.push(`/search?keyword=${encodeURIComponent(keyword)}`);
   };
 
-  // ✅ Xử lý click danh mục (TV Show, Phim Lẻ, Phim Bộ, Phim Đang Chiếu)
+  // ✅ Click danh mục chính
   const handleNavigateCategory = (category: string) => {
     router.push(`/search?category=${category}`);
   };
 
-  // ✅ Xử lý click dropdown
+  // ✅ Click dropdown item
   const handleNavigateParam = (param: string, value: string) => {
     router.push(`/search?${param}=${value}`);
+    setOpenDropdown(null); // Ẩn menu sau khi chọn
+  };
+
+  // ✅ Toggle dropdown
+  const toggleDropdown = (menu: string) => {
+    setOpenDropdown(openDropdown === menu ? null : menu);
   };
 
   return (
@@ -37,7 +44,7 @@ export default function Header() {
       </div>
 
       {/* Menu chính */}
-      <nav className="flex items-center flex-wrap gap-4 md:gap-6">
+      <nav className="flex items-center flex-wrap gap-4 md:gap-6 relative">
         <button
           onClick={() => handleNavigateCategory("tv-shows")}
           className="hover:text-yellow-500 transition"
@@ -64,51 +71,72 @@ export default function Header() {
         </button>
 
         {/* Dropdown Thể loại */}
-        <div className="relative group z-50">
-          <button className="hover:text-yellow-500 transition">Thể loại ▾</button>
-          <div className="absolute left-0 mt-2 w-52 bg-gray-800 rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-50 max-h-96 overflow-y-auto">
-            {GENRES.map((genre) => (
-              <button
-                key={genre.slug}
-                onClick={() => handleNavigateParam("genre", genre.slug)}
-                className="block w-full text-left px-4 py-2 hover:bg-gray-700"
-              >
-                {genre.label}
-              </button>
-            ))}
-          </div>
+        <div className="relative z-40">
+          <button
+            onClick={() => toggleDropdown("genre")}
+            className="hover:text-yellow-500 transition"
+          >
+            Thể loại ▾
+          </button>
+          {openDropdown === "genre" && (
+            <div className="absolute left-0 mt-2 w-52 bg-gray-800 rounded shadow-lg max-h-96 overflow-y-auto animate-fadeIn">
+              {GENRES.map((genre) => (
+                <button
+                  key={genre.slug}
+                  onClick={() => handleNavigateParam("genre", genre.slug)}
+                  className="block w-full text-left px-4 py-2 hover:bg-gray-700"
+                >
+                  {genre.label}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Dropdown Quốc gia */}
-        <div className="relative group z-50">
-          <button className="hover:text-yellow-500 transition">Quốc gia ▾</button>
-          <div className="absolute left-0 mt-2 w-48 bg-gray-800 rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-50 max-h-96 overflow-y-auto">
-            {COUNTRIES.map((country) => (
-              <button
-                key={country.slug}
-                onClick={() => handleNavigateParam("country", country.slug)}
-                className="block w-full text-left px-4 py-2 hover:bg-gray-700"
-              >
-                {country.label}
-              </button>
-            ))}
-          </div>
+        <div className="relative z-40">
+          <button
+            onClick={() => toggleDropdown("country")}
+            className="hover:text-yellow-500 transition"
+          >
+            Quốc gia ▾
+          </button>
+          {openDropdown === "country" && (
+            <div className="absolute left-0 mt-2 w-48 bg-gray-800 rounded shadow-lg max-h-96 overflow-y-auto animate-fadeIn">
+              {COUNTRIES.map((country) => (
+                <button
+                  key={country.slug}
+                  onClick={() => handleNavigateParam("country", country.slug)}
+                  className="block w-full text-left px-4 py-2 hover:bg-gray-700"
+                >
+                  {country.label}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Dropdown Năm */}
-        <div className="relative group z-50">
-          <button className="hover:text-yellow-500 transition">Năm ▾</button>
-          <div className="absolute left-0 mt-2 w-32 bg-gray-800 rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-50 max-h-96 overflow-y-auto">
-            {YEARS.map((year) => (
-              <button
-                key={year}
-                onClick={() => handleNavigateParam("year", String(year))}
-                className="block w-full text-left px-4 py-2 hover:bg-gray-700"
-              >
-                {year}
-              </button>
-            ))}
-          </div>
+        <div className="relative z-40">
+          <button
+            onClick={() => toggleDropdown("year")}
+            className="hover:text-yellow-500 transition"
+          >
+            Năm ▾
+          </button>
+          {openDropdown === "year" && (
+            <div className="absolute left-0 mt-2 w-32 bg-gray-800 rounded shadow-lg max-h-96 overflow-y-auto animate-fadeIn">
+              {YEARS.map((year) => (
+                <button
+                  key={year}
+                  onClick={() => handleNavigateParam("year", String(year))}
+                  className="block w-full text-left px-4 py-2 hover:bg-gray-700"
+                >
+                  {year}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </nav>
 
@@ -137,9 +165,8 @@ export default function Header() {
           </div>
           <input
             type="text"
-            id="voice-search"
-            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-l-full focus:ring-blue-500 focus:border-blue-500 block w-full ps-10 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
             placeholder="Tìm phim..."
+            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-l-full focus:ring-blue-500 focus:border-blue-500 block w-full ps-10 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
             value={keyword}
             onChange={(e) => setKeyword(e.target.value)}
             required
