@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import MovieCard from "../components/MovieCard";
 import { GENRES, COUNTRIES, YEARS } from "../utils/constants";
@@ -23,156 +23,120 @@ interface FilterOptions {
   country?: string;
 }
 
-export default function SearchPage() {
+function SearchPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // Reactive params from URL
-  const keyword = searchParams.get("keyword") || "";
-  const category = searchParams.get("category") || "";
-  const genre = searchParams.get("genre") || "";
-  const country = searchParams.get("country") || "";
-  const year = searchParams.get("year") || "";
-  const pageParam = parseInt(searchParams.get("page") || "1", 10) || 1;
-
-  // Local states
-  const [filters, setFilters] = useState<FilterOptions>({
-    category,
-    genre,
-    country,
-    year,
-  });
+  const [filters, setFilters] = useState<FilterOptions>({});
   const [movies, setMovies] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(false);
-  const [page, setPage] = useState<number>(pageParam);
-  const [totalPages, setTotalPages] = useState<number>(1);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
-  // Sync local filters/page when URL changes (reactive)
+  // Đọc params từ URL
   useEffect(() => {
-    setFilters({ category, genre, country, year });
-    setPage(pageParam);
-  }, [category, genre, country, year, pageParam]);
+    setFilters({
+      category: searchParams.get("category") || "",
+      genre: searchParams.get("genre") || "",
+      country: searchParams.get("country") || "",
+      year: searchParams.get("year") || "",
+    });
+    setPage(parseInt(searchParams.get("page") || "1", 10));
+  }, [searchParams]);
 
-  // Helper: build query string from current params + overrides
+  // Hàm tạo query URL
   const buildQuery = (overrides: Record<string, string | number | undefined>) => {
     const q = new URLSearchParams();
-    // Preserve existing
-    if (keyword) q.set("keyword", keyword);
-    const c = overrides.category ?? filters.category;
-    const g = overrides.genre ?? filters.genre;
-    const co = overrides.country ?? filters.country;
-    const y = overrides.year ?? filters.year;
-    const p = overrides.page ?? page;
-
-    if (typeof c === "string" && c) q.set("category", c);
-    if (typeof g === "string" && g) q.set("genre", g);
-    if (typeof co === "string" && co) q.set("country", co);
-    if (typeof y === "string" && y) q.set("year", y);
-    if (p && Number(p) > 1) q.set("page", String(p)); // set page only if >1 for cleaner URL
-
-    return q.toString() ? `/search?${q.toString()}` : "/search";
+    const merged = { ...filters, ...overrides };
+    Object.entries(merged).forEach(([k, v]) => {
+      if (v) q.set(k, String(v));
+    });
+    if (page > 1) q.set("page", String(page));
+    return `/search?${q.toString()}`;
   };
 
-  // Update URL (used when user changes dropdown or pagination)
   const updateUrl = (overrides: Record<string, string | number | undefined>) => {
-    const url = buildQuery(overrides);
-    // Use replace to avoid polluting history for small filter changes (optional)
-    router.push(url);
+    router.push(buildQuery(overrides));
   };
 
-  // Fetch movies (use proxy /api/... so rewrites take effect; avoids CORS)
+  // Fetch phim
   const fetchMovies = async () => {
     setLoading(true);
     try {
-      // Prefer server proxy endpoints (you have rewrites -> /api/films/...)
       let apiUrl = "";
 
-      if (keyword) {
-        apiUrl = `/api/films/search?keyword=${encodeURIComponent(keyword)}&page=${page}`;
-      } else if (filters.category) {
+      if (filters.category)
         apiUrl = `/api/films/danh-sach/${filters.category}?page=${page}`;
-      } else if (filters.genre) {
+      else if (filters.genre)
         apiUrl = `/api/films/the-loai/${filters.genre}?page=${page}`;
-      } else if (filters.country) {
+      else if (filters.country)
         apiUrl = `/api/films/quoc-gia/${filters.country}?page=${page}`;
-      } else if (filters.year) {
+      else if (filters.year)
         apiUrl = `/api/films/nam-phat-hanh/${filters.year}?page=${page}`;
-      } else {
-        apiUrl = `/api/films/phim-moi-cap-nhat?page=${page}`;
-      }
+      else apiUrl = `/api/films/phim-moi-cap-nhat?page=${page}`;
 
       const res = await fetch(apiUrl, { cache: "no-store" });
-      if (!res.ok) {
-        console.error("Fetch failed:", res.status, apiUrl);
-        setMovies([]);
-        setTotalPages(1);
-        return;
-      }
       const data = await res.json();
 
       setMovies(data.items || data.data?.items || []);
       setTotalPages(data?.paginate?.total_page || 1);
-    } catch (error) {
-      console.error("❌ Lỗi fetch phim:", error);
+    } catch (err) {
+      console.error("❌ Fetch phim lỗi:", err);
       setMovies([]);
-      setTotalPages(1);
     } finally {
       setLoading(false);
     }
   };
 
-  // Trigger fetch when relevant dependencies change
   useEffect(() => {
     fetchMovies();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filters.category, filters.genre, filters.country, filters.year, keyword, page]);
+  }, [filters, page]);
 
-  // When user changes a filter in the dropdown on the page:
   const handleFilterChange = (key: keyof FilterOptions, value: string) => {
-    // Update local state immediately for controlled selects
     setFilters((prev) => ({ ...prev, [key]: value }));
-    // Reset to first page
-    const nextPage = 1;
-    setPage(nextPage);
-    // Push new query to URL so useSearchParams updates and fetch runs
-    updateUrl({ [key]: value || undefined, page: nextPage });
+    updateUrl({ [key]: value || undefined, page: 1 });
   };
 
-  // Pagination handlers (update URL so it persists/shareable)
   const goToPage = (p: number) => {
-    if (p < 1 || p === page || p > totalPages) return;
+    if (p < 1 || p > totalPages) return;
     setPage(p);
     updateUrl({ page: p });
   };
 
   const getTitle = () => {
-    if (keyword) return `Kết quả tìm kiếm cho: "${keyword}"`;
     if (filters.category)
       return `Danh mục: ${
         filters.category
           .replace("phim-le", "Phim Lẻ")
           .replace("phim-bo", "Phim Bộ")
-          .replace("tv-shows", "TV Show")
+          .replace("tv-shows", "TV Shows")
           .replace("phim-dang-chieu", "Phim Đang Chiếu")
       }`;
     if (filters.genre)
-      return `Thể loại: ${GENRES.find((g) => g.slug === filters.genre)?.label || filters.genre}`;
+      return `Thể loại: ${
+        GENRES.find((g) => g.slug === filters.genre)?.label || filters.genre
+      }`;
     if (filters.country)
-      return `Quốc gia: ${COUNTRIES.find((c) => c.slug === filters.country)?.label || filters.country}`;
+      return `Quốc gia: ${
+        COUNTRIES.find((c) => c.slug === filters.country)?.label ||
+        filters.country
+      }`;
     if (filters.year) return `Năm phát hành: ${filters.year}`;
     return "Tất cả phim";
   };
 
   return (
-    <div className="p-6 md:p-10 text-white min-h-screen bg-gray-900">
+    <div className="min-h-screen bg-gray-950 text-white px-6 md:px-10 py-8">
       {/* Tiêu đề */}
-      <h2 className="text-2xl font-bold mb-6 border-b border-gray-700 pb-3">{getTitle()}</h2>
+      <h2 className="text-3xl font-bold mb-6 border-b border-gray-700 pb-3 text-center">
+        {getTitle()}
+      </h2>
 
       {/* Bộ lọc */}
-      <div className="flex flex-wrap gap-4 mb-8">
+      <div className="flex flex-wrap justify-center gap-4 mb-8">
         {/* Danh mục */}
         <select
-          className="bg-gray-800 text-white px-4 py-2 rounded-lg"
+          className="bg-gray-800 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition"
           value={filters.category || ""}
           onChange={(e) => handleFilterChange("category", e.target.value)}
         >
@@ -185,7 +149,7 @@ export default function SearchPage() {
 
         {/* Thể loại */}
         <select
-          className="bg-gray-800 text-white px-4 py-2 rounded-lg"
+          className="bg-gray-800 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition"
           value={filters.genre || ""}
           onChange={(e) => handleFilterChange("genre", e.target.value)}
         >
@@ -199,7 +163,7 @@ export default function SearchPage() {
 
         {/* Quốc gia */}
         <select
-          className="bg-gray-800 text-white px-4 py-2 rounded-lg"
+          className="bg-gray-800 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition"
           value={filters.country || ""}
           onChange={(e) => handleFilterChange("country", e.target.value)}
         >
@@ -213,7 +177,7 @@ export default function SearchPage() {
 
         {/* Năm */}
         <select
-          className="bg-gray-800 text-white px-4 py-2 rounded-lg"
+          className="bg-gray-800 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition"
           value={filters.year || ""}
           onChange={(e) => handleFilterChange("year", e.target.value)}
         >
@@ -228,37 +192,55 @@ export default function SearchPage() {
 
       {/* Danh sách phim */}
       {loading ? (
-        <div className="text-center text-lg text-gray-400 animate-pulse">Đang tải phim...</div>
+        <div className="text-center text-gray-400 animate-pulse text-lg py-20">
+          ⏳ Đang tải phim...
+        </div>
       ) : movies.length === 0 ? (
-        <p className="text-center text-gray-400 mt-10">Không tìm thấy phim nào.</p>
+        <p className="text-center text-gray-400 mt-10 text-lg">
+          Không tìm thấy phim nào.
+        </p>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-5">
-          {movies.map((movie, index) => (
-            <MovieCard key={movie.slug || movie.id || index} movie={movie} />
+          {movies.map((movie, i) => (
+            <MovieCard key={movie.slug || movie.id || i} movie={movie} />
           ))}
         </div>
       )}
 
       {/* Phân trang */}
-      <div className="flex justify-center items-center gap-6 mt-10">
+      <div className="flex justify-center items-center gap-6 mt-12">
         <button
           disabled={page <= 1}
           onClick={() => goToPage(page - 1)}
-          className="px-4 py-2 bg-gray-800 rounded-lg disabled:opacity-50 hover:bg-gray-700 transition"
+          className="px-5 py-2 bg-gray-800 rounded-lg disabled:opacity-40 hover:bg-gray-700 transition font-semibold"
         >
-          Prev
+          ⬅️ Prev
         </button>
-        <span className="px-5 py-2 bg-red-600 rounded-lg font-semibold">
+        <span className="px-5 py-2 bg-red-600 rounded-lg font-bold shadow-md">
           {page} / {totalPages}
         </span>
         <button
           disabled={page >= totalPages}
           onClick={() => goToPage(page + 1)}
-          className="px-4 py-2 bg-gray-800 rounded-lg disabled:opacity-50 hover:bg-gray-700 transition"
+          className="px-5 py-2 bg-gray-800 rounded-lg disabled:opacity-40 hover:bg-gray-700 transition font-semibold"
         >
-          Next
+          Next ➡️
         </button>
       </div>
     </div>
+  );
+}
+
+export default function SearchPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex justify-center items-center bg-black text-white text-xl">
+          🔄 Đang tải trang tìm kiếm...
+        </div>
+      }
+    >
+      <SearchPageInner />
+    </Suspense>
   );
 }
