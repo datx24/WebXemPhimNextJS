@@ -2,8 +2,15 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   images: {
-    domains: ["phim.nguonc.com"],
-  },
+  remotePatterns: [
+    {
+      protocol: "https",
+      hostname: "phim.nguonc.com",
+      port: "",
+      pathname: "/**",
+    },
+  ],
+},
 
   async rewrites() {
     return [

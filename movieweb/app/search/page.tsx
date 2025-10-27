@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import MovieCard from "../components/MovieCard";
 import { GENRES, COUNTRIES, YEARS } from "../utils/constants";
 
@@ -22,58 +23,49 @@ interface FilterOptions {
   country?: string;
 }
 
-export default function SearchPage({
-  searchParams,
-}: {
-  searchParams: Promise<{
-    keyword?: string;
-    category?: string;
-    genre?: string;
-    country?: string;
-    year?: string;
-  }>;
-}) {
-  const [params, setParams] = useState<Record<string, string>>({});
+export default function SearchPage() {
+  const searchParams = useSearchParams();
+
+  // ✅ Lấy các param từ URL (reactive)
+  const keyword = searchParams.get("keyword") || "";
+  const category = searchParams.get("category") || "";
+  const genre = searchParams.get("genre") || "";
+  const country = searchParams.get("country") || "";
+  const year = searchParams.get("year") || "";
+
+  const [filters, setFilters] = useState<FilterOptions>({
+    category,
+    genre,
+    country,
+    year,
+  });
   const [movies, setMovies] = useState<Movie[]>([]);
-  const [filters, setFilters] = useState<FilterOptions>({});
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
-  // ✅ Lấy query từ URL (Next.js 14 searchParams là Promise)
+  // ✅ Cập nhật filter khi URL thay đổi
   useEffect(() => {
-    (async () => {
-      const p = await searchParams;
-      setParams(p);
-      setFilters({
-        category: p.category || "",
-        genre: p.genre || "",
-        country: p.country || "",
-        year: p.year || "",
-      });
-    })();
-  }, [searchParams]);
+    setFilters({ category, genre, country, year });
+    setPage(1);
+  }, [category, genre, country, year]);
 
-  // ✅ Gọi API lấy phim
+  // ✅ Fetch API phim
   const fetchMovies = async () => {
     setLoading(true);
     try {
-      const { genre, country, year, category } = filters;
-      const keyword = params.keyword;
       let apiUrl = "";
 
       if (keyword) {
-        apiUrl = `https://phim.nguonc.com/api/films/search?keyword=${encodeURIComponent(
-          keyword
-        )}&page=${page}`;
-      } else if (category) {
-        apiUrl = `https://phim.nguonc.com/api/films/danh-sach/${category}?page=${page}`;
-      } else if (genre) {
-        apiUrl = `https://phim.nguonc.com/api/films/the-loai/${genre}?page=${page}`;
-      } else if (country) {
-        apiUrl = `https://phim.nguonc.com/api/films/quoc-gia/${country}?page=${page}`;
-      } else if (year) {
-        apiUrl = `https://phim.nguonc.com/api/films/nam-phat-hanh/${year}?page=${page}`;
+        apiUrl = `https://phim.nguonc.com/api/films/search?keyword=${encodeURIComponent(keyword)}&page=${page}`;
+      } else if (filters.category) {
+        apiUrl = `https://phim.nguonc.com/api/films/danh-sach/${filters.category}?page=${page}`;
+      } else if (filters.genre) {
+        apiUrl = `https://phim.nguonc.com/api/films/the-loai/${filters.genre}?page=${page}`;
+      } else if (filters.country) {
+        apiUrl = `https://phim.nguonc.com/api/films/quoc-gia/${filters.country}?page=${page}`;
+      } else if (filters.year) {
+        apiUrl = `https://phim.nguonc.com/api/films/nam-phat-hanh/${filters.year}?page=${page}`;
       } else {
         apiUrl = `https://phim.nguonc.com/api/films/phim-moi-cap-nhat?page=${page}`;
       }
@@ -92,12 +84,12 @@ export default function SearchPage({
     }
   };
 
-  // ✅ Khi filter hoặc keyword hoặc page đổi
+  // ✅ Gọi API mỗi khi filter, keyword, page thay đổi
   useEffect(() => {
     fetchMovies();
-  }, [filters, params.keyword, page]);
+  }, [filters, keyword, page]);
 
-  // ✅ Cập nhật filter
+  // ✅ Cập nhật filter thủ công (dropdown)
   const handleFilterChange = (key: keyof FilterOptions, value: string) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
     setPage(1);
@@ -105,7 +97,7 @@ export default function SearchPage({
 
   // ✅ Tiêu đề hiển thị
   const getTitle = () => {
-    if (params.keyword) return `Kết quả tìm kiếm cho: "${params.keyword}"`;
+    if (keyword) return `Kết quả tìm kiếm cho: "${keyword}"`;
     if (filters.category)
       return `Danh mục: ${
         filters.category
