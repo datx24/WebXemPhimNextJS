@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import MovieCard from "../components/MovieCard";
 import { GENRES, COUNTRIES, YEARS } from "../utils/constants";
 
@@ -24,15 +24,18 @@ interface FilterOptions {
 }
 
 export default function SearchPage() {
+  const router = useRouter();
   const searchParams = useSearchParams();
 
-  // ✅ Lấy các param từ URL (reactive)
+  // Reactive params from URL
   const keyword = searchParams.get("keyword") || "";
   const category = searchParams.get("category") || "";
   const genre = searchParams.get("genre") || "";
   const country = searchParams.get("country") || "";
   const year = searchParams.get("year") || "";
+  const pageParam = parseInt(searchParams.get("page") || "1", 10) || 1;
 
+  // Local states
   const [filters, setFilters] = useState<FilterOptions>({
     category,
     genre,
@@ -41,36 +44,70 @@ export default function SearchPage() {
   });
   const [movies, setMovies] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(false);
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
+  const [page, setPage] = useState<number>(pageParam);
+  const [totalPages, setTotalPages] = useState<number>(1);
 
-  // ✅ Cập nhật filter khi URL thay đổi
+  // Sync local filters/page when URL changes (reactive)
   useEffect(() => {
     setFilters({ category, genre, country, year });
-    setPage(1);
-  }, [category, genre, country, year]);
+    setPage(pageParam);
+  }, [category, genre, country, year, pageParam]);
 
-  // ✅ Fetch API phim
+  // Helper: build query string from current params + overrides
+  const buildQuery = (overrides: Record<string, string | number | undefined>) => {
+    const q = new URLSearchParams();
+    // Preserve existing
+    if (keyword) q.set("keyword", keyword);
+    const c = overrides.category ?? filters.category;
+    const g = overrides.genre ?? filters.genre;
+    const co = overrides.country ?? filters.country;
+    const y = overrides.year ?? filters.year;
+    const p = overrides.page ?? page;
+
+    if (typeof c === "string" && c) q.set("category", c);
+    if (typeof g === "string" && g) q.set("genre", g);
+    if (typeof co === "string" && co) q.set("country", co);
+    if (typeof y === "string" && y) q.set("year", y);
+    if (p && Number(p) > 1) q.set("page", String(p)); // set page only if >1 for cleaner URL
+
+    return q.toString() ? `/search?${q.toString()}` : "/search";
+  };
+
+  // Update URL (used when user changes dropdown or pagination)
+  const updateUrl = (overrides: Record<string, string | number | undefined>) => {
+    const url = buildQuery(overrides);
+    // Use replace to avoid polluting history for small filter changes (optional)
+    router.push(url);
+  };
+
+  // Fetch movies (use proxy /api/... so rewrites take effect; avoids CORS)
   const fetchMovies = async () => {
     setLoading(true);
     try {
+      // Prefer server proxy endpoints (you have rewrites -> /api/films/...)
       let apiUrl = "";
 
       if (keyword) {
-        apiUrl = `https://phim.nguonc.com/api/films/search?keyword=${encodeURIComponent(keyword)}&page=${page}`;
+        apiUrl = `/api/films/search?keyword=${encodeURIComponent(keyword)}&page=${page}`;
       } else if (filters.category) {
-        apiUrl = `https://phim.nguonc.com/api/films/danh-sach/${filters.category}?page=${page}`;
+        apiUrl = `/api/films/danh-sach/${filters.category}?page=${page}`;
       } else if (filters.genre) {
-        apiUrl = `https://phim.nguonc.com/api/films/the-loai/${filters.genre}?page=${page}`;
+        apiUrl = `/api/films/the-loai/${filters.genre}?page=${page}`;
       } else if (filters.country) {
-        apiUrl = `https://phim.nguonc.com/api/films/quoc-gia/${filters.country}?page=${page}`;
+        apiUrl = `/api/films/quoc-gia/${filters.country}?page=${page}`;
       } else if (filters.year) {
-        apiUrl = `https://phim.nguonc.com/api/films/nam-phat-hanh/${filters.year}?page=${page}`;
+        apiUrl = `/api/films/nam-phat-hanh/${filters.year}?page=${page}`;
       } else {
-        apiUrl = `https://phim.nguonc.com/api/films/phim-moi-cap-nhat?page=${page}`;
+        apiUrl = `/api/films/phim-moi-cap-nhat?page=${page}`;
       }
 
       const res = await fetch(apiUrl, { cache: "no-store" });
+      if (!res.ok) {
+        console.error("Fetch failed:", res.status, apiUrl);
+        setMovies([]);
+        setTotalPages(1);
+        return;
+      }
       const data = await res.json();
 
       setMovies(data.items || data.data?.items || []);
@@ -84,18 +121,30 @@ export default function SearchPage() {
     }
   };
 
-  // ✅ Gọi API mỗi khi filter, keyword, page thay đổi
+  // Trigger fetch when relevant dependencies change
   useEffect(() => {
     fetchMovies();
-  }, [filters, keyword, page]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters.category, filters.genre, filters.country, filters.year, keyword, page]);
 
-  // ✅ Cập nhật filter thủ công (dropdown)
+  // When user changes a filter in the dropdown on the page:
   const handleFilterChange = (key: keyof FilterOptions, value: string) => {
+    // Update local state immediately for controlled selects
     setFilters((prev) => ({ ...prev, [key]: value }));
-    setPage(1);
+    // Reset to first page
+    const nextPage = 1;
+    setPage(nextPage);
+    // Push new query to URL so useSearchParams updates and fetch runs
+    updateUrl({ [key]: value || undefined, page: nextPage });
   };
 
-  // ✅ Tiêu đề hiển thị
+  // Pagination handlers (update URL so it persists/shareable)
+  const goToPage = (p: number) => {
+    if (p < 1 || p === page || p > totalPages) return;
+    setPage(p);
+    updateUrl({ page: p });
+  };
+
   const getTitle = () => {
     if (keyword) return `Kết quả tìm kiếm cho: "${keyword}"`;
     if (filters.category)
@@ -107,14 +156,9 @@ export default function SearchPage() {
           .replace("phim-dang-chieu", "Phim Đang Chiếu")
       }`;
     if (filters.genre)
-      return `Thể loại: ${
-        GENRES.find((g) => g.slug === filters.genre)?.label || filters.genre
-      }`;
+      return `Thể loại: ${GENRES.find((g) => g.slug === filters.genre)?.label || filters.genre}`;
     if (filters.country)
-      return `Quốc gia: ${
-        COUNTRIES.find((c) => c.slug === filters.country)?.label ||
-        filters.country
-      }`;
+      return `Quốc gia: ${COUNTRIES.find((c) => c.slug === filters.country)?.label || filters.country}`;
     if (filters.year) return `Năm phát hành: ${filters.year}`;
     return "Tất cả phim";
   };
@@ -122,16 +166,14 @@ export default function SearchPage() {
   return (
     <div className="p-6 md:p-10 text-white min-h-screen bg-gray-900">
       {/* Tiêu đề */}
-      <h2 className="text-2xl font-bold mb-6 border-b border-gray-700 pb-3">
-        {getTitle()}
-      </h2>
+      <h2 className="text-2xl font-bold mb-6 border-b border-gray-700 pb-3">{getTitle()}</h2>
 
       {/* Bộ lọc */}
       <div className="flex flex-wrap gap-4 mb-8">
         {/* Danh mục */}
         <select
           className="bg-gray-800 text-white px-4 py-2 rounded-lg"
-          value={filters.category}
+          value={filters.category || ""}
           onChange={(e) => handleFilterChange("category", e.target.value)}
         >
           <option value="">Danh mục</option>
@@ -144,7 +186,7 @@ export default function SearchPage() {
         {/* Thể loại */}
         <select
           className="bg-gray-800 text-white px-4 py-2 rounded-lg"
-          value={filters.genre}
+          value={filters.genre || ""}
           onChange={(e) => handleFilterChange("genre", e.target.value)}
         >
           <option value="">Thể loại</option>
@@ -158,7 +200,7 @@ export default function SearchPage() {
         {/* Quốc gia */}
         <select
           className="bg-gray-800 text-white px-4 py-2 rounded-lg"
-          value={filters.country}
+          value={filters.country || ""}
           onChange={(e) => handleFilterChange("country", e.target.value)}
         >
           <option value="">Quốc gia</option>
@@ -172,7 +214,7 @@ export default function SearchPage() {
         {/* Năm */}
         <select
           className="bg-gray-800 text-white px-4 py-2 rounded-lg"
-          value={filters.year}
+          value={filters.year || ""}
           onChange={(e) => handleFilterChange("year", e.target.value)}
         >
           <option value="">Năm</option>
@@ -186,17 +228,13 @@ export default function SearchPage() {
 
       {/* Danh sách phim */}
       {loading ? (
-        <div className="text-center text-lg text-gray-400 animate-pulse">
-          Đang tải phim...
-        </div>
+        <div className="text-center text-lg text-gray-400 animate-pulse">Đang tải phim...</div>
       ) : movies.length === 0 ? (
-        <p className="text-center text-gray-400 mt-10">
-          Không tìm thấy phim nào.
-        </p>
+        <p className="text-center text-gray-400 mt-10">Không tìm thấy phim nào.</p>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-5">
           {movies.map((movie, index) => (
-            <MovieCard key={movie.slug || index} movie={movie} />
+            <MovieCard key={movie.slug || movie.id || index} movie={movie} />
           ))}
         </div>
       )}
@@ -205,7 +243,7 @@ export default function SearchPage() {
       <div className="flex justify-center items-center gap-6 mt-10">
         <button
           disabled={page <= 1}
-          onClick={() => setPage(page - 1)}
+          onClick={() => goToPage(page - 1)}
           className="px-4 py-2 bg-gray-800 rounded-lg disabled:opacity-50 hover:bg-gray-700 transition"
         >
           Prev
@@ -215,7 +253,7 @@ export default function SearchPage() {
         </span>
         <button
           disabled={page >= totalPages}
-          onClick={() => setPage(page + 1)}
+          onClick={() => goToPage(page + 1)}
           className="px-4 py-2 bg-gray-800 rounded-lg disabled:opacity-50 hover:bg-gray-700 transition"
         >
           Next
