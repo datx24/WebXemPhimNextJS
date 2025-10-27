@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { GENRES, COUNTRIES, YEARS } from "../utils/constants";
 
 export default function Header() {
   const [keyword, setKeyword] = useState("");
@@ -13,7 +14,6 @@ export default function Header() {
     router.push(`/search?keyword=${encodeURIComponent(keyword)}`);
   };
 
-  // 🔹 Hàm điều hướng nhanh đến trang /search với category
   const handleNavigateCategory = (category: string) => {
     router.push(`/search?category=${category}`);
   };
@@ -56,79 +56,53 @@ export default function Header() {
         </button>
 
         {/* Dropdown Thể loại */}
-        <div className="relative group z-50">
-          <button className="hover:text-red-500 transition">Thể loại ▾</button>
-          <div className="absolute left-0 mt-2 w-40 bg-gray-800 rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-50">
-            <a
-              href="/search?genre=lang-man"
-              className="block px-4 py-2 hover:bg-gray-700"
-            >
-              Lãng Mạn
-            </a>
-            <a
-              href="/search?genre=chien-tranh"
-              className="block px-4 py-2 hover:bg-gray-700"
-            >
-              Chiến Tranh
-            </a>
-            <a
-              href="/search?genre=hai-huoc"
-              className="block px-4 py-2 hover:bg-gray-700"
-            >
-              Hài Hước
-            </a>
-          </div>
-        </div>
+<div className="relative group z-50">
+  <button className="hover:text-red-500 transition">Thể loại ▾</button>
+  <div className="absolute left-0 mt-2 w-52 bg-gray-800 rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-50 max-h-96 overflow-y-auto">
+    {GENRES.map((genre) => (
+      <a
+        key={genre.slug}
+        href={`/search?genre=${genre.slug}`}
+        className="block px-4 py-2 hover:bg-gray-700"
+      >
+        {genre.label}
+      </a>
+    ))}
+  </div>
+</div>
 
-        {/* Dropdown Quốc gia */}
-        <div className="relative group z-50">
-          <button className="hover:text-red-500 transition">Quốc gia ▾</button>
-          <div className="absolute left-0 mt-2 w-40 bg-gray-800 rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-50">
-            <a
-              href="/search?country=han-quoc"
-              className="block px-4 py-2 hover:bg-gray-700"
-            >
-              Hàn Quốc
-            </a>
-            <a
-              href="/search?country=au-my"
-              className="block px-4 py-2 hover:bg-gray-700"
-            >
-              Âu Mỹ
-            </a>
-            <a
-              href="/search?country=nhat-ban"
-              className="block px-4 py-2 hover:bg-gray-700"
-            >
-              Nhật Bản
-            </a>
-          </div>
-        </div>
+{/* Dropdown Quốc gia */}
+<div className="relative group z-50">
+  <button className="hover:text-red-500 transition">Quốc gia ▾</button>
+  <div className="absolute left-0 mt-2 w-48 bg-gray-800 rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-50 max-h-96 overflow-y-auto">
+    {COUNTRIES.map((country) => (
+      <a
+        key={country.slug}
+        href={`/search?country=${country.slug}`}
+        className="block px-4 py-2 hover:bg-gray-700"
+      >
+        {country.label}
+      </a>
+    ))}
+  </div>
+</div>
 
-        {/* Dropdown Năm */}
-        <div className="relative group z-50">
-          <button className="hover:text-red-500 transition">Năm ▾</button>
-          <div className="absolute left-0 mt-2 w-32 bg-gray-800 rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-50">
-            <a
-              href="/search?year=2025"
-              className="block px-4 py-2 hover:bg-gray-700"
-            >
-              2025
-            </a>
-            <a
-              href="/search?year=2024"
-              className="block px-4 py-2 hover:bg-gray-700"
-            >
-              2024
-            </a>
-            <a
-              href="/search?year=2023"
-              className="block px-4 py-2 hover:bg-gray-700"
-            >
-              2023
-            </a>
-          </div>
-        </div>
+{/* Dropdown Năm */}
+<div className="relative group z-50">
+  <button className="hover:text-red-500 transition">Năm ▾</button>
+  <div className="absolute left-0 mt-2 w-32 bg-gray-800 rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-50 max-h-96 overflow-y-auto">
+    {YEARS.map((year) => (
+      <a
+        key={year}
+        href={`/search?year=${year}`}
+        className="block px-4 py-2 hover:bg-gray-700"
+      >
+        {year}
+      </a>
+    ))}
+  </div>
+</div>
+
       </nav>
 
       {/* Search box */}
