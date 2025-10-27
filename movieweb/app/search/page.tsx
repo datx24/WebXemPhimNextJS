@@ -17,6 +17,7 @@ interface Movie {
 }
 
 interface FilterOptions {
+  keyword?: string;
   category?: string;
   genre?: string;
   year?: string;
@@ -26,16 +27,16 @@ interface FilterOptions {
 function SearchPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
-
   const [filters, setFilters] = useState<FilterOptions>({});
   const [movies, setMovies] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
-  // Đọc params từ URL
+  // 🔹 Đọc params từ URL
   useEffect(() => {
     setFilters({
+      keyword: searchParams.get("keyword") || "",
       category: searchParams.get("category") || "",
       genre: searchParams.get("genre") || "",
       country: searchParams.get("country") || "",
@@ -44,14 +45,13 @@ function SearchPageInner() {
     setPage(parseInt(searchParams.get("page") || "1", 10));
   }, [searchParams]);
 
-  // Hàm tạo query URL
+  // 🔹 Hàm tạo query URL
   const buildQuery = (overrides: Record<string, string | number | undefined>) => {
     const q = new URLSearchParams();
     const merged = { ...filters, ...overrides };
     Object.entries(merged).forEach(([k, v]) => {
       if (v) q.set(k, String(v));
     });
-    if (page > 1) q.set("page", String(page));
     return `/search?${q.toString()}`;
   };
 
@@ -59,13 +59,18 @@ function SearchPageInner() {
     router.push(buildQuery(overrides));
   };
 
-  // Fetch phim
+  // 🔹 Fetch phim
   const fetchMovies = async () => {
     setLoading(true);
     try {
       let apiUrl = "";
 
-      if (filters.category)
+      // ✅ Nếu có keyword → gọi API search
+      if (filters.keyword) {
+        apiUrl = `/api/films/search?keyword=${encodeURIComponent(filters.keyword)}&page=${page}`;
+      }
+      // ✅ Nếu không có keyword → gọi các API danh sách tương ứng
+      else if (filters.category)
         apiUrl = `/api/films/danh-sach/${filters.category}?page=${page}`;
       else if (filters.genre)
         apiUrl = `/api/films/the-loai/${filters.genre}?page=${page}`;
@@ -76,6 +81,7 @@ function SearchPageInner() {
       else apiUrl = `/api/films/phim-moi-cap-nhat?page=${page}`;
 
       const res = await fetch(apiUrl, { cache: "no-store" });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
 
       setMovies(data.items || data.data?.items || []);
@@ -104,6 +110,8 @@ function SearchPageInner() {
   };
 
   const getTitle = () => {
+    if (filters.keyword)
+      return `Kết quả tìm kiếm cho: "${filters.keyword}"`;
     if (filters.category)
       return `Danh mục: ${
         filters.category
