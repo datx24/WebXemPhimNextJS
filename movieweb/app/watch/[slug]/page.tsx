@@ -35,7 +35,7 @@ export default function WatchPage() {
       <h1 className="text-3xl sm:text-4xl font-bold mb-6 text-center">{movie.name}</h1>
 
       {/* Player */}
-      <div className="aspect-video w-full rounded-xl overflow-hidden shadow-lg mb-6">
+      <div className="aspect-[21/9] w-full rounded-xl overflow-hidden shadow-lg mb-6">
         {currentEpisode ? (
           <iframe
             src={currentEpisode.embed}
