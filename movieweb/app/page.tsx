@@ -229,7 +229,7 @@ export default function Home() {
     autoInterval: NodeJS.Timeout | null;
     setAutoInterval: React.Dispatch<React.SetStateAction<NodeJS.Timeout | null>>;
   }) => (
-    <section className="w-full max-w-8xl mx-auto px-4 mb-12">
+    <section className="w-full max-w-8xl mx-auto py-4">
       <div className="bg-gradient-to-r from-gray-900/10 via-transparent to-gray-900/10 rounded-3xl p-8 shadow-2xl border border-gray-200/20 dark:border-gray-700/50 backdrop-blur-sm">
         <div className="flex justify-between items-center mb-8">
           <h2 className="text-3xl md:text-4xl font-bold text-black dark:text-white drop-shadow-lg">
@@ -266,7 +266,7 @@ export default function Home() {
         <Banner />
         
         {/* Phim Đang Chiếu Section */}
-        <section className="w-full max-w-8xl mx-auto px-4 py-12">
+        <section className="w-full max-w-8xl mx-auto py-4">
           <div className="bg-gradient-to-r from-gray-900/10 via-transparent to-gray-900/10 rounded-3xl p-8 shadow-2xl border border-gray-200/20 dark:border-gray-700/50 backdrop-blur-sm">
             <div className="flex justify-between items-center mb-8">
               <h2 className="text-3xl md:text-4xl font-bold text-black dark:text-white drop-shadow-lg">
