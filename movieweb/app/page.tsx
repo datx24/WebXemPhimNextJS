@@ -155,7 +155,7 @@ export default function Home() {
   const renderCarousel = (moviesList: Movie[], currentSlideState: number, totalSlidesState: number, setter: React.Dispatch<React.SetStateAction<number>>, autoInterval: NodeJS.Timeout | null, setAutoInterval: React.Dispatch<React.SetStateAction<NodeJS.Timeout | null>>) => (
     <div className="relative">
       <div 
-        className="overflow-hidden rounded-2xl"
+        className="overflow-hidden rounded-lg sm:rounded-2xl"
         onMouseEnter={() => autoInterval && clearInterval(autoInterval)}
         onMouseLeave={() => {
           if (moviesList.length > 0 && totalSlidesState > 1) {
@@ -172,7 +172,7 @@ export default function Home() {
         >
           {Array.from({ length: totalSlidesState }).map((_, slideIndex) => (
             <div key={slideIndex} className="flex shrink-0 w-full">
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6 w-full px-4">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-4 md:gap-6 w-full px-2 sm:px-4">
                 {moviesList
                   .slice(slideIndex * moviesPerSlide, (slideIndex + 1) * moviesPerSlide)
                   .map((movie) => (
@@ -185,32 +185,32 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Navigation Buttons */}
+      {/* Navigation Buttons - Touch-friendly on mobile */}
       {totalSlidesState > 1 && (
         <>
           <button
             onClick={() => handlePrev(setter, totalSlidesState)}
-            className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-all duration-200 z-10"
+            className="absolute left-1 sm:left-2 md:left-4 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white p-2 sm:p-3 rounded-full transition-all duration-200 z-10 min-w-[44px] h-[44px] flex items-center justify-center"
           >
-            <ChevronLeft className="w-6 h-6" />
+            <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
           </button>
           <button
             onClick={() => handleNext(setter, totalSlidesState)}
-            className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-all duration-200 z-10"
+            className="absolute right-1 sm:right-2 md:right-4 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white p-2 sm:p-3 rounded-full transition-all duration-200 z-10 min-w-[44px] h-[44px] flex items-center justify-center"
           >
-            <ChevronRight className="w-6 h-6" />
+            <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
           </button>
         </>
       )}
 
-      {/* Dots Indicator */}
+      {/* Dots Indicator - Closer spacing on mobile */}
       {totalSlidesState > 1 && (
-        <div className="flex justify-center mt-6 space-x-2">
+        <div className="flex justify-center mt-4 sm:mt-6 space-x-1 sm:space-x-2">
           {Array.from({ length: totalSlidesState }).map((_, index) => (
             <button
               key={index}
               onClick={() => handleDotClick(index, setter)}
-              className={`w-3 h-3 rounded-full transition-all duration-200 ${
+              className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full transition-all duration-200 ${
                 currentSlideState === index
                   ? "bg-yellow-500 scale-125"
                   : "bg-gray-400 hover:bg-gray-300"
@@ -229,28 +229,28 @@ export default function Home() {
     autoInterval: NodeJS.Timeout | null;
     setAutoInterval: React.Dispatch<React.SetStateAction<NodeJS.Timeout | null>>;
   }) => (
-    <section className="w-full max-w-8xl mx-auto py-4">
-      <div className="bg-gradient-to-r from-gray-900/10 via-transparent to-gray-900/10 rounded-3xl p-8 shadow-2xl border border-gray-200/20 dark:border-gray-700/50 backdrop-blur-sm">
-        <div className="flex justify-between items-center mb-8">
-          <h2 className="text-3xl md:text-4xl font-bold text-black dark:text-white drop-shadow-lg">
+    <section className="w-full max-w-8xl mx-auto py-2 sm:py-4">
+      <div className="bg-gradient-to-r from-gray-900/10 via-transparent to-gray-900/10 rounded-xl sm:rounded-3xl p-4 sm:p-6 md:p-8 shadow-xl sm:shadow-2xl border border-gray-200/20 dark:border-gray-700/50 backdrop-blur-sm">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 sm:mb-8 gap-4 sm:gap-0">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-black dark:text-white drop-shadow-lg text-center sm:text-left">
             {title}
           </h2>
           <Link
             href={linkHref}
-            className="px-8 py-3 bg-yellow-500 hover:bg-yellow-600 text-black font-semibold rounded-full transition-all duration-200 shadow-lg hover:shadow-yellow-500/25 whitespace-nowrap"
+            className="px-4 sm:px-6 sm:px-8 py-2 sm:py-3 bg-yellow-500 hover:bg-yellow-600 text-black font-semibold rounded-full transition-all duration-200 shadow-lg hover:shadow-yellow-500/25 whitespace-nowrap w-full sm:w-auto text-center sm:text-left"
           >
             Xem thêm
           </Link>
         </div>
         
         {moviesList.length === 0 ? (
-          <div className="text-center py-16 text-gray-500 dark:text-gray-400">
+          <div className="text-center py-12 sm:py-16 text-gray-500 dark:text-gray-400">
             <p>Không có dữ liệu lúc này.</p>
           </div>
         ) : useCarousel && carouselProps ? (
           renderCarousel(moviesList, carouselProps.currentSlide, carouselProps.totalSlides, carouselProps.setter, carouselProps.autoInterval, carouselProps.setAutoInterval)
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-4 md:gap-6">
             {moviesList.map((movie) => (
               <MiniMovieCard key={movie.slug} movie={movie} />
             ))}
@@ -262,41 +262,41 @@ export default function Home() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full flex-col items-center justify-between py-16 px-8 bg-white dark:bg-black sm:items-start">
+      <main className="flex min-h-screen w-full flex-col items-center justify-start py-4 sm:py-8 md:py-12 px-4 sm:px-6 lg:px-8 bg-white dark:bg-black">
         <Banner />
         
         {/* Phim Đang Chiếu Section */}
-        <section className="w-full max-w-8xl mx-auto py-4">
-          <div className="bg-gradient-to-r from-gray-900/10 via-transparent to-gray-900/10 rounded-3xl p-8 shadow-2xl border border-gray-200/20 dark:border-gray-700/50 backdrop-blur-sm">
-            <div className="flex justify-between items-center mb-8">
-              <h2 className="text-3xl md:text-4xl font-bold text-black dark:text-white drop-shadow-lg">
+        <section className="w-full max-w-8xl mx-auto py-2 sm:py-4">
+          <div className="bg-gradient-to-r from-gray-900/10 via-transparent to-gray-900/10 rounded-xl sm:rounded-3xl p-4 sm:p-6 md:p-8 shadow-xl sm:shadow-2xl border border-gray-200/20 dark:border-gray-700/50 backdrop-blur-sm">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 sm:mb-8 gap-4 sm:gap-0">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-black dark:text-white drop-shadow-lg text-center sm:text-left">
                 Phim Đang Chiếu
               </h2>
 
               <Link
                 href="/search?category=phim-dang-chieu"
-                className="px-8 py-3 bg-yellow-500 hover:bg-yellow-600 text-black font-semibold rounded-full transition-all duration-200 shadow-lg hover:shadow-yellow-500/25 whitespace-nowrap"
+                className="px-4 sm:px-6 sm:px-8 py-2 sm:py-3 bg-yellow-500 hover:bg-yellow-600 text-black font-semibold rounded-full transition-all duration-200 shadow-lg hover:shadow-yellow-500/25 whitespace-nowrap w-full sm:w-auto text-center sm:text-left"
               >
                 Xem thêm
               </Link>
             </div>
             
             {loading ? (
-              <div className="flex justify-center items-center py-16">
+              <div className="flex justify-center items-center py-12 sm:py-16">
                 <div className="text-center text-gray-500 dark:text-gray-400">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-500 mx-auto mb-4"></div>
+                  <div className="animate-spin rounded-full h-8 w-8 sm:h-12 sm:w-12 border-b-2 border-yellow-500 mx-auto mb-4"></div>
                   <p>Đang tải phim...</p>
                 </div>
               </div>
             ) : movies.length === 0 ? (
-              <div className="text-center py-16 text-gray-500 dark:text-gray-400">
+              <div className="text-center py-12 sm:py-16 text-gray-500 dark:text-gray-400">
                 <p>Không có phim đang chiếu lúc này.</p>
               </div>
             ) : (
               <div className="relative">
                 {/* Carousel Container */}
                 <div 
-                  className="overflow-hidden rounded-2xl"
+                  className="overflow-hidden rounded-lg sm:rounded-2xl"
                   onMouseEnter={() => autoSlideInterval && clearInterval(autoSlideInterval)}
                   onMouseLeave={() => {
                     if (movies.length > 0 && totalSlides > 1) {
@@ -313,7 +313,7 @@ export default function Home() {
                   >
                     {Array.from({ length: totalSlides }).map((_, slideIndex) => (
                       <div key={slideIndex} className="flex shrink-0 w-full">
-                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6 w-full px-4">
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-4 md:gap-6 w-full px-2 sm:px-4">
                           {movies
                             .slice(slideIndex * moviesPerSlide, (slideIndex + 1) * moviesPerSlide)
                             .map((movie) => (
@@ -326,32 +326,32 @@ export default function Home() {
                   </div>
                 </div>
 
-                {/* Navigation Buttons */}
+                {/* Navigation Buttons - Touch-friendly on mobile */}
                 {totalSlides > 1 && (
                   <>
                     <button
                       onClick={() => handlePrev(setCurrentSlide, totalSlides)}
-                      className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-all duration-200 z-10"
+                      className="absolute left-1 sm:left-2 md:left-4 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white p-2 sm:p-3 rounded-full transition-all duration-200 z-10 min-w-[44px] h-[44px] flex items-center justify-center"
                     >
-                      <ChevronLeft className="w-6 h-6" />
+                      <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
                     </button>
                     <button
                       onClick={() => handleNext(setCurrentSlide, totalSlides)}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-all duration-200 z-10"
+                      className="absolute right-1 sm:right-2 md:right-4 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white p-2 sm:p-3 rounded-full transition-all duration-200 z-10 min-w-[44px] h-[44px] flex items-center justify-center"
                     >
-                      <ChevronRight className="w-6 h-6" />
+                      <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
                     </button>
                   </>
                 )}
 
-                {/* Dots Indicator */}
+                {/* Dots Indicator - Closer spacing on mobile */}
                 {totalSlides > 1 && (
-                  <div className="flex justify-center mt-6 space-x-2">
+                  <div className="flex justify-center mt-4 sm:mt-6 space-x-1 sm:space-x-2">
                     {Array.from({ length: totalSlides }).map((_, index) => (
                       <button
                         key={index}
                         onClick={() => handleDotClick(index, setCurrentSlide)}
-                        className={`w-3 h-3 rounded-full transition-all duration-200 ${
+                        className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full transition-all duration-200 ${
                           currentSlide === index
                             ? "bg-yellow-500 scale-125"
                             : "bg-gray-400 hover:bg-gray-300"
