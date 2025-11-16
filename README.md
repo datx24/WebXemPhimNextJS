@@ -7,8 +7,6 @@
 
 > 🌟 **RoPhim** là một trang web xem phim online hiện đại, được xây dựng bằng Next.js với giao diện đẹp mắt và trải nghiệm người dùng tuyệt vời. Cập nhật liên tục các bộ phim mới nhất với chất lượng HD và phụ đề tiếng Việt.
 
-![RoPhim Logo](public/RoPhim.png)
-
 ## ✨ Tính Năng Chính
 
 ### 🎯 Trang Chủ
@@ -166,15 +164,6 @@ Dự án sử dụng API proxy để kết nối với phim.nguonc.com:
 - **Caching**: ISR cho dữ liệu phim
 - **Bundle Analysis**: Optimized bundle size
 
-## 🤝 Đóng Góp
-
-Chúng tôi hoan nghênh mọi đóng góp! 🎉
-
-1. Fork dự án
-2. Tạo feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to branch (`git push origin feature/AmazingFeature`)
-5. Tạo Pull Request
 
 ### Coding Standards
 - Sử dụng TypeScript cho type safety
@@ -188,18 +177,18 @@ Dự án này được phân phối dưới giấy phép MIT. Xem file `LICENSE`
 
 ## 📞 Liên Hệ
 
-- **Email**: support@ro-phim.com
-- **Website**: [ro-phim.vercel.app](https://ro-phim.vercel.app)
-- **GitHub**: [github.com/your-username/ro-phim](https://github.com/your-username/ro-phim)
+- **Email**: xuandat475@gmail.com
+- **Website**: [ro-phim.vercel.app](https://web-xem-phim-next-js-81w3.vercel.app/)
+- **GitHub**: [github.com/your-username/ro-phim](https://github.com/datx24/WebXemPhimNextJS)
 
 ---
 
 <div align="center">
 
-**Made with ❤️ by RoPhim Team**
+**Made with ❤️ by datx24**
 
 ⭐ Nếu bạn thích dự án này, hãy cho chúng tôi một ngôi sao!
 
-[🌐 Truy cập Website](https://ro-phim.vercel.app) • [📧 Liên Hệ](mailto:support@ro-phim.com) • [🐛 Báo Lỗi](https://github.com/your-username/ro-phim/issues)
+[🌐 Truy cập Website](https://web-xem-phim-next-js-81w3.vercel.app/) • [📧 Liên Hệ](xuandat475@gmail.com) • [🐛 Báo Lỗi](xuandat475@gmail.com)
 
 </div>
