@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { Calendar, Tag, MapPin, ChevronRight } from "lucide-react";
 
 interface FilmDetail {
   id: string;
@@ -34,8 +35,14 @@ export default function Banner() {
 
   if (!film) {
     return (
-      <div className="text-center py-20 text-gray-500 dark:text-gray-300">
-        Đang tải...
+      <div className="relative w-full h-[75vh] overflow-hidden rounded-3xl shadow-2xl bg-gradient-to-br from-gray-900 via-gray-800 to-black/50 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="relative">
+            <div className="w-16 h-16 border-4 border-yellow-500/20 border-t-yellow-500 rounded-full animate-spin"></div>
+            <div className="absolute inset-0 w-16 h-16 border-4 border-transparent border-t-yellow-400 rounded-full animate-ping"></div>
+          </div>
+          <div className="text-xl font-semibold text-white/80 tracking-wide">Đang tải phim mới nhất...</div>
+        </div>
       </div>
     );
   }
@@ -46,46 +53,78 @@ export default function Banner() {
   const quocGia = film.category?.["4"]?.list?.map((c: any) => c.name).join(", ") || "Chưa rõ";
 
   return (
-    <div className="relative w-full h-[75vh] overflow-hidden rounded-2xl shadow-2xl transition-all duration-700">
-      {/* Ảnh nền */}
+    <div className="relative w-full h-[75vh] overflow-hidden rounded-3xl shadow-2xl group transition-all duration-700 hover:shadow-3xl">
+      {/* Ảnh nền với hiệu ứng zoom nhẹ */}
       <Image
         src={film.poster_url}
         alt={film.name}
         fill
         priority
-        className="object-cover object-center brightness-[0.55] transition-transform duration-700 hover:scale-105"
+        className="object-cover object-center transition-transform duration-700 group-hover:scale-110 brightness-[0.4] contrast-125"
       />
 
-      {/* Lớp phủ gradient */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent"></div>
+      {/* Lớp phủ gradient cải tiến */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/70 to-transparent" />
 
-      {/* Nội dung chữ */}
-      <div className="absolute bottom-0 left-0 p-8 sm:p-16 text-white max-w-4xl">
-        <h1 className="text-4xl sm:text-5xl font-extrabold mb-3 drop-shadow-lg">
-          {film.name}
-        </h1>
-        <p className="text-lg text-gray-300 italic mb-2">
-          {film.original_name} • {namSanXuat}
-        </p>
+      {/* Nội dung chữ với animation fade-in */}
+      <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-10 lg:p-16 text-white z-20 animate-fade-in-up">
+        <div className="max-w-4xl mx-auto">
+          {/* Tiêu đề chính */}
+          <h1 className="text-3xl sm:text-5xl md:text-6xl font-black mb-4 bg-gradient-to-r from-yellow-400 via-white to-yellow-300 bg-clip-text text-transparent drop-shadow-2xl">
+            {film.name}
+          </h1>
 
-        <p className="text-sm text-gray-200 mb-2">
-          <span className="font-semibold">Thể loại:</span> {theLoai}
-        </p>
-        <p className="text-sm text-gray-200 mb-4">
-          <span className="font-semibold">Quốc gia:</span> {quocGia}
-        </p>
+          {/* Thông tin phụ */}
+          <div className="flex flex-wrap items-center gap-4 mb-6 text-gray-200">
+            <div className="flex items-center gap-2 text-sm sm:text-base">
+              <Calendar className="w-4 h-4" />
+              <span>{film.original_name} • {namSanXuat}</span>
+            </div>
+            <div className="flex items-center gap-2 text-sm sm:text-base">
+              <Tag className="w-4 h-4" />
+              <span>{theLoai}</span>
+            </div>
+            <div className="flex items-center gap-2 text-sm sm:text-base">
+              <MapPin className="w-4 h-4" />
+              <span>{quocGia}</span>
+            </div>
+          </div>
 
-        <p className="text-base text-gray-200 max-w-2xl line-clamp-4 leading-relaxed mb-6">
-          {film.description || "Không có mô tả."}
-        </p>
+          {/* Mô tả */}
+          <p className="text-base sm:text-lg text-gray-100 mb-8 leading-relaxed max-w-2xl line-clamp-3">
+            {film.description || "Không có mô tả."}
+          </p>
 
-        <Link
-          href={`/film/${film.slug}`}
-          className="inline-flex items-center gap-2 bg-yellow-600 hover:bg-yellow-700 text-white px-6 py-3 rounded-full font-semibold text-lg transition-transform duration-300 hover:scale-105"
-        >
-          ▶ Xem ngay
-        </Link>
+          {/* Nút CTA */}
+          <Link
+            href={`/film/${film.slug}`}
+            className="group/btn inline-flex items-center gap-3 bg-gradient-to-r from-yellow-500 via-yellow-600 to-orange-500 hover:from-yellow-600 hover:via-yellow-700 hover:to-orange-600 text-white px-8 py-4 rounded-2xl font-bold text-lg shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl transform-gpu"
+          >
+            ▶ Xem ngay
+            <ChevronRight className="w-5 h-5 group-hover/btn:translate-x-1 transition-transform duration-300" />
+          </Link>
+        </div>
       </div>
     </div>
   );
 }
+
+// Thêm CSS cho animation (có thể đặt trong globals.css hoặc inline)
+const styles = `
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-fade-in-up {
+  animation: fade-in-up 0.8s ease-out forwards;
+}
+`;
+
+// Để thêm styles, bạn có thể import vào _app hoặc globals.css
+// Hoặc sử dụng <style jsx global>{styles}</style> nếu dùng styled-jsx
