@@ -2,6 +2,7 @@
 
 import { Suspense, useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { Search, Filter, ChevronDown, ChevronLeft, ChevronRight, Loader2, X } from "lucide-react";
 import MovieCard from "../components/MovieCard";
 import { GENRES, COUNTRIES, YEARS } from "../utils/constants";
 
@@ -23,6 +24,13 @@ interface FilterOptions {
   year?: string;
   country?: string;
 }
+
+const CATEGORIES = [
+  { slug: "phim-le", label: "Phim Lẻ" },
+  { slug: "phim-bo", label: "Phim Bộ" },
+  { slug: "tv-shows", label: "TV Shows" },
+  { slug: "phim-dang-chieu", label: "Phim Đang Chiếu" },
+];
 
 function SearchPageInner() {
   const router = useRouter();
@@ -59,6 +67,19 @@ function SearchPageInner() {
     router.push(buildQuery(overrides));
   };
 
+  // 🔹 Clear filters
+  const clearFilters = () => {
+    updateUrl({
+      keyword: undefined,
+      category: undefined,
+      genre: undefined,
+      country: undefined,
+      year: undefined,
+      page: 1,
+    });
+    setFilters({});
+  };
+
   // 🔹 Fetch phim
   const fetchMovies = async () => {
     setLoading(true);
@@ -67,18 +88,18 @@ function SearchPageInner() {
 
       // ✅ Nếu có keyword → gọi API search
       if (filters.keyword) {
-        apiUrl = `/api/films/search?keyword=${encodeURIComponent(filters.keyword)}&page=${page}`;
+        apiUrl = `/api/films/search?keyword=${encodeURIComponent(filters.keyword)}&page=${page}&limit=10`;
       }
       // ✅ Nếu không có keyword → gọi các API danh sách tương ứng
       else if (filters.category)
-        apiUrl = `/api/films/danh-sach/${filters.category}?page=${page}`;
+        apiUrl = `/api/films/danh-sach/${filters.category}?page=${page}&limit=10`;
       else if (filters.genre)
-        apiUrl = `/api/films/the-loai/${filters.genre}?page=${page}`;
+        apiUrl = `/api/films/the-loai/${filters.genre}?page=${page}&limit=10`;
       else if (filters.country)
-        apiUrl = `/api/films/quoc-gia/${filters.country}?page=${page}`;
+        apiUrl = `/api/films/quoc-gia/${filters.country}?page=${page}&limit=10`;
       else if (filters.year)
-        apiUrl = `/api/films/nam-phat-hanh/${filters.year}?page=${page}`;
-      else apiUrl = `/api/films/phim-moi-cap-nhat?page=${page}`;
+        apiUrl = `/api/films/nam-phat-hanh/${filters.year}?page=${page}&limit=10`;
+      else apiUrl = `/api/films/phim-moi-cap-nhat?page=${page}&limit=10`;
 
       const res = await fetch(apiUrl, { cache: "no-store" });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -87,7 +108,6 @@ function SearchPageInner() {
       setMovies(data.items || data.data?.items || []);
       setTotalPages(data?.paginate?.total_page || 1);
     } catch (err) {
-      console.error("❌ Fetch phim lỗi:", err);
       setMovies([]);
     } finally {
       setLoading(false);
@@ -114,11 +134,7 @@ function SearchPageInner() {
       return `Kết quả tìm kiếm cho: "${filters.keyword}"`;
     if (filters.category)
       return `Danh mục: ${
-        filters.category
-          .replace("phim-le", "Phim Lẻ")
-          .replace("phim-bo", "Phim Bộ")
-          .replace("tv-shows", "TV Shows")
-          .replace("phim-dang-chieu", "Phim Đang Chiếu")
+        CATEGORIES.find((c) => c.slug === filters.category)?.label || filters.category
       }`;
     if (filters.genre)
       return `Thể loại: ${
@@ -133,108 +149,66 @@ function SearchPageInner() {
     return "Tất cả phim";
   };
 
+  const hasActiveFilters =
+    filters.keyword || filters.category || filters.genre || filters.country || filters.year;
+
   return (
-    <div className="min-h-screen bg-gray-950 text-white px-6 md:px-10 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-black text-white px-4 sm:px-6 md:px-10 py-6">
+
       {/* Tiêu đề */}
-      <h2 className="text-3xl font-bold mb-6 border-b border-gray-700 pb-3 text-center">
+      <h2 className="text-2xl sm:text-3xl font-bold mb-6 border-b border-gray-700/50 pb-4 text-center bg-gradient-to-r from-yellow-500/20 to-transparent rounded-lg">
         {getTitle()}
       </h2>
 
-      {/* Bộ lọc */}
-      <div className="flex flex-wrap justify-center gap-4 mb-8">
-        {/* Danh mục */}
-        <select
-          className="bg-gray-800 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition"
-          value={filters.category || ""}
-          onChange={(e) => handleFilterChange("category", e.target.value)}
-        >
-          <option value="">Danh mục</option>
-          <option value="phim-le">Phim lẻ</option>
-          <option value="phim-bo">Phim bộ</option>
-          <option value="tv-shows">TV Shows</option>
-          <option value="phim-dang-chieu">Phim đang chiếu</option>
-        </select>
-
-        {/* Thể loại */}
-        <select
-          className="bg-gray-800 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition"
-          value={filters.genre || ""}
-          onChange={(e) => handleFilterChange("genre", e.target.value)}
-        >
-          <option value="">Thể loại</option>
-          {GENRES.map((g) => (
-            <option key={g.slug} value={g.slug}>
-              {g.label}
-            </option>
-          ))}
-        </select>
-
-        {/* Quốc gia */}
-        <select
-          className="bg-gray-800 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition"
-          value={filters.country || ""}
-          onChange={(e) => handleFilterChange("country", e.target.value)}
-        >
-          <option value="">Quốc gia</option>
-          {COUNTRIES.map((c) => (
-            <option key={c.slug} value={c.slug}>
-              {c.label}
-            </option>
-          ))}
-        </select>
-
-        {/* Năm */}
-        <select
-          className="bg-gray-800 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition"
-          value={filters.year || ""}
-          onChange={(e) => handleFilterChange("year", e.target.value)}
-        >
-          <option value="">Năm</option>
-          {YEARS.map((y) => (
-            <option key={y} value={y.toString()}>
-              {y}
-            </option>
-          ))}
-        </select>
-      </div>
-
       {/* Danh sách phim */}
       {loading ? (
-        <div className="text-center text-gray-400 animate-pulse text-lg py-20">
-          ⏳ Đang tải phim...
+        <div className="flex flex-col justify-center items-center text-gray-400 py-20 space-y-4">
+          <Loader2 className="w-12 h-12 animate-spin text-yellow-500" />
+          <p className="text-lg">Đang tải phim...</p>
         </div>
       ) : movies.length === 0 ? (
-        <p className="text-center text-gray-400 mt-10 text-lg">
-          Không tìm thấy phim nào.
-        </p>
+        <div className="flex flex-col justify-center items-center text-gray-400 py-20 space-y-4">
+          <Search className="w-16 h-16 opacity-50" />
+          <p className="text-xl text-center">Không tìm thấy phim nào phù hợp.</p>
+          <p className="text-sm">Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm.</p>
+        </div>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-5">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 gap-4 sm:gap-5 mb-8">
           {movies.map((movie, i) => (
-            <MovieCard key={movie.slug || movie.id || i} movie={movie} />
+            <div
+              key={movie.slug || movie.id || i}
+              className="group relative overflow-hidden rounded-xl bg-gray-800/50 hover:bg-gray-700/50 transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-yellow-500/20 border border-gray-700/50"
+            >
+              <MovieCard movie={movie} />
+            </div>
           ))}
         </div>
       )}
 
       {/* Phân trang */}
-      <div className="flex justify-center items-center gap-6 mt-12">
-        <button
-          disabled={page <= 1}
-          onClick={() => goToPage(page - 1)}
-          className="px-5 py-2 bg-gray-800 rounded-lg disabled:opacity-40 hover:bg-gray-700 transition font-semibold"
-        >
-          ⬅️ Prev
-        </button>
-        <span className="px-5 py-2 bg-red-600 rounded-lg font-bold shadow-md">
-          {page} / {totalPages}
-        </span>
-        <button
-          disabled={page >= totalPages}
-          onClick={() => goToPage(page + 1)}
-          className="px-5 py-2 bg-gray-800 rounded-lg disabled:opacity-40 hover:bg-gray-700 transition font-semibold"
-        >
-          Next ➡️
-        </button>
-      </div>
+      {totalPages > 1 && (
+        <div className="flex justify-center items-center gap-4 mt-12 px-4">
+          <button
+            disabled={page <= 1}
+            onClick={() => goToPage(page - 1)}
+            className="p-3 bg-gray-800/50 hover:bg-gray-700/50 disabled:opacity-40 disabled:cursor-not-allowed rounded-full transition-all duration-200 shadow-lg hover:shadow-yellow-500/25 flex items-center justify-center"
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+          <div className="flex items-center gap-2 px-4 py-2 bg-yellow-500/20 rounded-full font-bold shadow-md">
+            <span className="text-sm">{page}</span>
+            <span className="text-gray-400">/</span>
+            <span className="text-sm">{totalPages}</span>
+          </div>
+          <button
+            disabled={page >= totalPages}
+            onClick={() => goToPage(page + 1)}
+            className="p-3 bg-gray-800/50 hover:bg-gray-700/50 disabled:opacity-40 disabled:cursor-not-allowed rounded-full transition-all duration-200 shadow-lg hover:shadow-yellow-500/25 flex items-center justify-center"
+          >
+            <ChevronRight className="w-5 h-5" />
+          </button>
+        </div>
+      )}
     </div>
   );
 }
@@ -243,8 +217,11 @@ export default function SearchPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen flex justify-center items-center bg-black text-white text-xl">
-          🔄 Đang tải trang tìm kiếm...
+        <div className="min-h-screen flex justify-center items-center bg-gradient-to-br from-gray-950 to-black text-white text-xl">
+          <div className="flex items-center gap-2">
+            <Loader2 className="w-8 h-8 animate-spin text-yellow-500" />
+            Đang tải trang tìm kiếm...
+          </div>
         </div>
       }
     >
